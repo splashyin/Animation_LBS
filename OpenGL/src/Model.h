@@ -8,7 +8,6 @@
 #include <glm\gtx\quaternion.hpp>
 #include "Shader.h"
 #include "Mesh.h"
-#include "Dual_quat.h"
 
 #include <string>
 #include <fstream>

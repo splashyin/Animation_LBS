@@ -30,7 +30,6 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
 vector<glm::mat4> Transforms;
-vector<dual_quat> dualQuaternions;
 float deltaTime = 0.0f;	// Time between current frame and last frame
 float lastFrame = 0.0f; // Time of last frame
 float animationTime = 0.0f;
@@ -78,8 +77,6 @@ int main(void)
 
 	Shader shader("res/shaders/vertex.shader", "res/shaders/fragment.shader");
 
-	
-	
 	Model aModel("res/object/cylinder/anim_cylinder.fbx");
 	
 	float startFrame = glfwGetTime();
