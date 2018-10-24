@@ -28,13 +28,6 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
 void debuggingMatrix(glm::mat4 array);
 void debugVertexBoneData(unsigned int total_vertices, vector<VertexBoneData> Bones);
 
-glm::mat3 fromaiMat3(const aiMatrix3x3 &ai);
-glm::mat4 toMat4(const aiMatrix4x4 &ai);
-glm::mat4 m_GlobalInverseTransform;
-
-
-
-
 class Model
 {
 public:
@@ -58,7 +51,6 @@ public:
 
 	vector<BoneInfo> m_BoneInfo;
 	unsigned int NumVertices = 0;
-
 
 
 	/*  Functions   */
@@ -101,7 +93,6 @@ private:
 	void loadModel(string const &path)
 	{
 		// read file via ASSIMP
-		
 		scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 		// check for errors
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
@@ -111,12 +102,6 @@ private:
 		}
 		// retrieve the directory path of the filepath
 		directory = path.substr(0, path.find_last_of('/'));
-		
-		aiMatrix4x4 tp1 = scene->mRootNode->mTransformation;
-		m_GlobalInverseTransform = toMat4(tp1);
-		m_GlobalInverseTransform = glm::inverse(m_GlobalInverseTransform);
-
-		//debuggingMatrix(m_GlobalInverseTransform);
 
 		// process ASSIMP's root node recursively
 		processNode(scene->mRootNode, scene);
@@ -271,7 +256,7 @@ private:
 				m_BoneInfo.push_back(bi);
 
 				aiMatrix4x4 tp1 = mesh->mBones[i]->mOffsetMatrix;
-				m_BoneInfo[BoneIndex].offset = toMat4(tp1);
+				m_BoneInfo[BoneIndex].offset = glm::transpose(glm::make_mat4(&tp1.a1));
 				Bone_Mapping[BoneName] = BoneIndex;
 			}
 			else {
@@ -312,7 +297,7 @@ private:
 		glm::mat4 NodeTransformation = glm::mat4(1.0f);
 
 		aiMatrix4x4 tp1 = pNode->mTransformation;
-		NodeTransformation = toMat4(tp1);
+		NodeTransformation = glm::transpose(glm::make_mat4(&tp1.a1));
 
 		const aiNodeAnim* pNodeAnim = nullptr;
 		pNodeAnim = Animations[pAnimation->mName.data][NodeName];
@@ -330,7 +315,7 @@ private:
 			aiQuaternion RotationQ;
 			CalcInterpolatedRotaion(RotationQ, AnimationTime, pNodeAnim);
 			aiMatrix3x3 tp = RotationQ.GetMatrix();
-			glm::mat4 RotationM = fromaiMat3(tp);
+			glm::mat4 RotationM = glm::transpose(glm::make_mat3(&tp.a1));
 
 			//Interpolate translation and generate translation transformation matrix
 			aiVector3D Translation;
@@ -349,7 +334,7 @@ private:
 
 		if (Bone_Mapping.find(NodeName) != Bone_Mapping.end()) {
  			unsigned int NodeIndex = Bone_Mapping[NodeName];
-			m_BoneInfo[NodeIndex].FinalTransformation = m_GlobalInverseTransform * GlobalTransformation * m_BoneInfo[NodeIndex].offset;
+			m_BoneInfo[NodeIndex].FinalTransformation =  GlobalTransformation * m_BoneInfo[NodeIndex].offset;
 
 		}
 
@@ -492,28 +477,6 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
 	}
 
 	return textureID;
-}
-
-glm::mat4 toMat4(const aiMatrix4x4 &from) {
-	glm::mat4 to;
-
-	to[0][0] = from.a1; to[1][0] = from.a2;	to[2][0] = from.a3; to[3][0] = from.a4;
-	to[0][1] = from.b1; to[1][1] = from.b2;	to[2][1] = from.b3; to[3][1] = from.b4;
-	to[0][2] = from.c1; to[1][2] = from.c2;	to[2][2] = from.c3; to[3][2] = from.c4;
-	to[0][3] = from.d1; to[1][3] = from.d2;	to[2][3] = from.d3; to[3][3] = from.d4;
-
-	return to;
-}
-
-glm::mat3 fromaiMat3(const aiMatrix3x3 &from)
-{
-	glm::mat3 to;
-
-	to[0][0] = from.a1; to[1][0] = from.a2;	to[2][0] = from.a3;
-	to[0][1] = from.b1; to[1][1] = from.b2;	to[2][1] = from.b3;
-	to[0][2] = from.c1; to[1][2] = from.c2;	to[2][2] = from.c3;
-
-	return to;
 }
 
 void debuggingMatrix(glm::mat4 array)

@@ -58,8 +58,8 @@ struct BoneInfo {
 	glm::mat4 FinalTransformation;
 	BoneInfo()
 	{
-		offset = glm::mat4(0.0f);
-		FinalTransformation = glm::mat4(0.0f);
+		offset = glm::mat4(1.0f);
+		FinalTransformation = glm::mat4(1.0f);
 	}
 };
 
@@ -119,7 +119,6 @@ public:
 	// render the mesh
 	void Draw(Shader shader)
 	{
-
 		// bind appropriate textures
 		unsigned int diffuseNr = 1;
 		unsigned int specularNr = 1;
@@ -140,7 +139,7 @@ public:
 			else if (name == "texture_height")
 				number = std::to_string(heightNr++); // transfer unsigned int to stream
 
-													 // now set the sampler to the correct texture unit
+			// now set the sampler to the correct texture unit
 			glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
 			// and finally bind the texture
 			glBindTexture(GL_TEXTURE_2D, textures[i].id);
@@ -163,7 +162,6 @@ private:
 	void setupMesh()
 	{
 		// create buffers/arrays
-		
 		glGenBuffers(1, &vertexData_vbo);
 		glGenVertexArrays(1, &VAO);
 		glGenBuffers(1, &EBO);
