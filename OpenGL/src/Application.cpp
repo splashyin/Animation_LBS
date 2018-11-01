@@ -1,4 +1,4 @@
-#include <GL/glew.h>
+﻿#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 #include "Shader.h"
@@ -37,7 +37,7 @@ float animationTime = 0.0f;
 int main(void)
 {
 	GLFWwindow* window;
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	/* Initialize the library */
@@ -55,6 +55,7 @@ int main(void)
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
+	
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
@@ -76,9 +77,17 @@ int main(void)
 	glEnable(GL_DEPTH_TEST);
 
 	Shader shader("res/shaders/vertex.shader", "res/shaders/fragment.shader");
-
-	Model aModel("res/object/cylinder/anim_cylinder.fbx");
+	Shader lampShader("res/shaders/lamp.vs", "res/shaders/lamp.fs");
 	
+	Model aModel("res/object/body/pedobear_animated.fbx");
+	//Model aModel("res/object/body/skinning_test_2.fbx");
+	//Model aModel("res/object/body/silly_dance.fbx");
+	//Model aModel("res/object/body/shuffling.fbx");
+	//Model aModel("res/object/body/Mannequin_Animation.fbx");
+	//Model aModel("res/object/body/turtle_texture.fbx");
+	//Model aModel("res/object/cylinder/anim_cylinder.fbx");
+	//Model aModel("res/object/body/groo.fbx");
+
 	float startFrame = glfwGetTime();
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
@@ -99,8 +108,9 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//wireframe mode for debugging
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		shader.use();
 
 
@@ -115,7 +125,7 @@ int main(void)
 
 		// render the loaded model
 		glm::mat4 model;
-		model = glm::scale(model, glm::vec3(0.05f, 0.05f, 0.05f));	// it's a bit too big for our scene, so scale it down
+		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));	// it's a bit too big for our scene, so scale it down
 		shader.setMat4("model", model);
 
 		

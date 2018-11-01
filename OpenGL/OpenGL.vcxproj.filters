@@ -32,7 +32,20 @@
     <None Include="res\object\cylinder\SpaceElemental.fbx" />
     <None Include="res\object\cylinder\alien.fbx" />
     <None Include="res\object\cylinder\Hulk_Animated.fbx" />
-    <None Include="res\object\body\alien.fbx" />
+    <None Include="res\object\body\Mannequin_Animation.FBX" />
+    <None Include="res\object\body\turtle.fbx" />
+    <None Include="res\object\body\dinasour.fbx" />
+    <None Include="res\object\body\pedobear_animated.fbx" />
+    <None Include="res\object\body\groo.fbx" />
+    <None Include="res\object\body\silly_dance.fbx" />
+    <None Include="res\object\body\skinning_test.fbx" />
+    <None Include="res\object\body\skinning_test_2.fbx" />
+    <None Include="res\object\body\skinning_test_4.fbx" />
+    <None Include="res\object\body\skinning_test_3.fbx" />
+    <None Include="res\object\body\push_up.fbx" />
+    <None Include="res\object\body\turtle_texture.fbx" />
+    <None Include="res\shaders\lamp.vs" />
+    <None Include="res\shaders\lamp.fs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Shader.h">
@@ -56,6 +69,30 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\texture\awesomeface.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\object\body\texture\body_normal_subD0.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\object\body\texture\all_color_final_5.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\object\body\texture\eye_color.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\object\body\texture\eye_iris_normals.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\object\body\texture\eye_iris_color.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\object\body\texture\eye_iris_spec.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\object\body\pedobear.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\object\body\Stormtrooper_D.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

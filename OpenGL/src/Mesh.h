@@ -9,12 +9,14 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
+
 using namespace std;
 
 #define NUM_BONES_PER_VERTEX 4
 #define ZERO_MEM(a) memset(a, 0, sizeof(a))
 #define ARRAY_SIZE_IN_ELEMENTS(a) (sizeof(a)/sizeof(a[0]))
 #define INVALID_MATERIAL 0xFFFFFFFF
+
 struct Vertex {
 	// position
 	glm::vec3 Position;
@@ -23,35 +25,33 @@ struct Vertex {
 	// texCoords
 	glm::vec2 TexCoords;
 	// tangent
-	//glm::vec3 Tangent;
+	glm::vec3 Tangent;
 	// bitangent
-	//glm::vec3 Bitangent;
+	glm::vec3 Bitangent;
 	
 };
 
 struct Texture {
 	unsigned int id;
-	string type;
+	string type; 
 	string path;
 };
 
 struct MeshEntry {
 	MeshEntry()
 	{
-		NumIndices = 0;
+		Mesh_Index = 0;
+		Num_Bones = 0;
 		BaseVertex = 0;
-		BaseIndex = 0;
-		MaterialIndex = INVALID_MATERIAL;
+		BaseIndices = 0;
 	}
 
-	unsigned int NumIndices;
+	unsigned int Mesh_Index;
+	unsigned int Num_Bones;
 	unsigned int BaseVertex;
-	unsigned int BaseIndex;
-	unsigned int MaterialIndex;
+	unsigned int BaseIndices;
 };
 
-std::vector<MeshEntry> m_Entries;
-std::vector<GLuint> m_Textures;
 
 struct BoneInfo {
 	glm::mat4 offset;
@@ -102,8 +102,7 @@ public:
 	vector<Texture> textures;
 	vector<BoneInfo> bones;
 	vector<VertexBoneData> vertexBoneData;
-	unsigned int VAO;
-	/*  Functions  */
+	
 	// constructor
 	Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures, vector<BoneInfo> bones, vector<VertexBoneData> vertexBoneData) {
 		this->vertices = vertices;
@@ -111,7 +110,6 @@ public:
 		this->textures = textures;
 		this->bones = bones;
 		this->vertexBoneData = vertexBoneData;
-
 		// now that we have all the required data, set the vertex buffers and its attribute pointers.
 		setupMesh();
 	}
@@ -145,7 +143,6 @@ public:
 			glBindTexture(GL_TEXTURE_2D, textures[i].id);
 		}
 
-		// draw mesh
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
@@ -156,14 +153,14 @@ public:
 
 private:
 	/*  Render data  */
-	unsigned int vertexData_vbo, EBO, vertexBones_vbo;
+	unsigned int VAO, vertexData_vbo, EBO, vertexBones_vbo;
 	/*  Functions    */
 	// initializes all the buffer objects/arrays
 	void setupMesh()
 	{
 		// create buffers/arrays
-		glGenBuffers(1, &vertexData_vbo);
 		glGenVertexArrays(1, &VAO);
+		glGenBuffers(1, &vertexData_vbo);
 		glGenBuffers(1, &EBO);
 		glGenBuffers(1, &vertexBones_vbo);
 
@@ -195,19 +192,14 @@ private:
 		// vertex bitangent
 		//glEnableVertexAttribArray(4);
 		//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
-		//bone IDs
-		//glEnableVertexAttribArray(3);
-		//glVertexAttribIPointer(3, NUM_BONES_PER_VERTEX, GL_INT, sizeof(VertexBoneData), (void*)0);//Int values only
-		//bone Weights
-		//glEnableVertexAttribArray(4);
-		//glVertexAttribPointer(4, NUM_BONES_PER_VERTEX, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (void*)offsetof(VertexBoneData, Weights));
-
+		
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBones_vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(VertexBoneData) * vertexBoneData.size(), &vertexBoneData[0], GL_STATIC_DRAW);
 		glEnableVertexAttribArray(3);
 		glVertexAttribIPointer(3, 4, GL_INT, sizeof(VertexBoneData), (const GLvoid*)0);//Int values only
 		glEnableVertexAttribArray(4);
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (const GLvoid*)16);
+		glVertexAttribPointer(4, NUM_BONES_PER_VERTEX, GL_FLOAT, GL_FALSE, sizeof(VertexBoneData), (void*)offsetof(VertexBoneData, Weights));
+
 
 		glBindVertexArray(0);
 	}
