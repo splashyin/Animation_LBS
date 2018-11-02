@@ -4,20 +4,17 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Model.h"
+#include "Lamp.h"
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
 #include <iostream>
-
-
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void wireframeMode(GLFWwindow *window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-
-
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -60,10 +57,8 @@ int main(void)
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
-
 	// tell GLFW to capture our mouse
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
 
 	if (glewInit() != GLEW_OK)
 	{
@@ -76,17 +71,20 @@ int main(void)
 	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
 
-	Shader shader("res/shaders/vertex.shader", "res/shaders/fragment.shader");
+	Shader modelShader("res/shaders/vertex.shader", "res/shaders/fragment.shader");
 	Shader lampShader("res/shaders/lamp.vs", "res/shaders/lamp.fs");
 	
-	Model aModel("res/object/body/pedobear_animated.fbx");
+	//Model aModel("res/object/body/pedobear_animated.fbx");
 	//Model aModel("res/object/body/skinning_test_2.fbx");
 	//Model aModel("res/object/body/silly_dance.fbx");
 	//Model aModel("res/object/body/shuffling.fbx");
 	//Model aModel("res/object/body/Mannequin_Animation.fbx");
 	//Model aModel("res/object/body/turtle_texture.fbx");
 	//Model aModel("res/object/cylinder/anim_cylinder.fbx");
-	//Model aModel("res/object/body/groo.fbx");
+	Model aModel("res/object/body/groo.fbx");
+	
+	//				lamp position					light color
+	Lamp lamp(glm::vec3(1.2f, 1.0f, 2.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
 	float startFrame = glfwGetTime();
 	/* Loop until the user closes the window */
@@ -104,46 +102,49 @@ int main(void)
 		processInput(window);
 		wireframeMode(window);
 
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//wireframe mode for debugging
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		shader.use();
-
-
-		// pass projection matrix to shader (as projection matrix rarely changes there's no need to do this per frame)
-		// -----------------------------------------------------------------------------------------------------------
+		
+		//activate model shader
+		// render 3D model
+		modelShader.use(); //3d model shader
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		shader.setMat4("projection", projection);
-		// camera/view transformation
+		modelShader.setMat4("projection", projection);
 		glm::mat4 view = camera.GetViewMatrix();
-		shader.setMat4("view", view);
-	
-
-		// render the loaded model
+		modelShader.setMat4("view", view);
 		glm::mat4 model;
 		model = glm::scale(model, glm::vec3(0.005f, 0.005f, 0.005f));	// it's a bit too big for our scene, so scale it down
-		shader.setMat4("model", model);
-
-		
+		modelShader.setMat4("model", model);
 		aModel.BoneTransform(animationTime, Transforms);
-
 		for (unsigned int i = 0; i < Transforms.size(); ++i)
 		{
 			const std::string name = "gBones[" + std::to_string(i) + "]";
-			GLuint boneTransform = glGetUniformLocation(shader.ID, name.c_str());
+			GLuint boneTransform = glGetUniformLocation(modelShader.ID, name.c_str());
 			glUniformMatrix4fv(boneTransform, 1, GL_FALSE, glm::value_ptr(Transforms[i]));
 		}
+		//set uniforms for model shader
+		modelShader.setVec3("lightPos", lamp.Position);
+		modelShader.setVec3("lightColor", lamp.Color);
+		aModel.Draw(modelShader);
 
-
-		aModel.Draw(shader);
+		//activate lamp shader
+		//render light cube(lamp)
+		lampShader.use();
+		lampShader.setMat4("projection", projection);
+		lampShader.setMat4("view", view);
+		glm::mat4 lamp_cube;
+		lamp_cube = glm::translate(lamp_cube, lamp.Position);
+		lamp_cube = glm::scale(lamp_cube, glm::vec3(0.2f));	// it's a bit too big for our scene, so scale it down
+		//set uniforms for lamp shader
+		lampShader.setMat4("model", lamp_cube);
+		lamp.Draw(lampShader);
 		
-		//check and call events and swap the buffers
-		/* Poll for and process events */
-	
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
