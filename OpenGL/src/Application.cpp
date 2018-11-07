@@ -80,8 +80,8 @@ int main(void)
 	//Model aModel("res/object/body/shuffling.fbx");
 	//Model aModel("res/object/body/Mannequin_Animation.fbx");
 	//Model aModel("res/object/body/turtle_texture.fbx");
-	//Model aModel("res/object/cylinder/anim_cylinder.fbx");
-	Model aModel("res/object/body/groo.fbx");
+	Model aModel("res/object/cylinder/anim_cylinder.fbx");
+	//Model aModel("res/object/body/groo.fbx");
 	
 	//				lamp position					light color
 	Lamp lamp(glm::vec3(1.2f, 1.0f, 2.0f), glm::vec3(1.0f, 1.0f, 1.0f));
