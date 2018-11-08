@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Model.h"
 #include "Lamp.h"
+#include "Skeleton.h"
 #include <glm\glm.hpp>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\gtc\type_ptr.hpp>
@@ -17,8 +18,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1600;
+const unsigned int SCR_HEIGHT = 1200;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -73,7 +74,8 @@ int main(void)
 
 	Shader modelShader("res/shaders/vertex.shader", "res/shaders/fragment.shader");
 	Shader lampShader("res/shaders/lamp.vs", "res/shaders/lamp.fs");
-	
+	Shader skeletonShader("res/shaders/skeleton.vs", "res/shaders/skeleton.fs");
+
 	//Model aModel("res/object/body/pedobear_animated.fbx");
 	//Model aModel("res/object/body/skinning_test_2.fbx");
 	//Model aModel("res/object/body/skinning_test.fbx");
@@ -81,11 +83,12 @@ int main(void)
 	//Model aModel("res/object/body/silly_dance.fbx");
 	//Model aModel("res/object/body/Mannequin_Animation.fbx");
 	//Model aModel("res/object/body/turtle_texture.fbx");
-	Model aModel("res/object/cylinder/anim_cylinder.fbx");
-	//Model aModel("res/object/body/groo.fbx");
+	//Model aModel("res/object/cylinder/anim_cylinder2.fbx");
+	Model aModel("res/object/body/groo.fbx");
 	
 	//				lamp position					light color
 	Lamp lamp(glm::vec3(1.2f, 1.0f, 2.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+	
 
 	float startFrame = glfwGetTime();
 	/* Loop until the user closes the window */
@@ -109,8 +112,8 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//wireframe mode for debugging
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
 		//activate model shader
 		// render 3D model
@@ -149,7 +152,18 @@ int main(void)
 		//set uniforms for lamp shader
 		lampShader.setMat4("model", lamp_cube);
 		lamp.Draw(lampShader);
-		
+
+		//activate skeleton shader
+		Skeleton skeleton(aModel.skeleton);
+
+		skeletonShader.use();
+		skeletonShader.setMat4("projection", projection);
+		skeletonShader.setMat4("view", view);
+		glm::mat4 skeletom_model;
+		skeletom_model = glm::scale(skeletom_model, glm::vec3(0.005f, 0.005f, 0.005f));	// it's a bit too big for our scene, so scale it down
+		skeletonShader.setMat4("model", skeletom_model);
+		skeleton.Draw(skeletonShader);
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

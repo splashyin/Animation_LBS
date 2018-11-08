@@ -46,6 +46,8 @@
     <None Include="res\object\body\turtle_texture.fbx" />
     <None Include="res\shaders\lamp.vs" />
     <None Include="res\shaders\lamp.fs" />
+    <None Include="res\shaders\skeleton.vs" />
+    <None Include="res\shaders\skeleton.fs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Shader.h">
@@ -64,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Lamp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Skeleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

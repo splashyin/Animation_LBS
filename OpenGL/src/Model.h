@@ -29,7 +29,7 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
 
 void debuggingMatrix(glm::mat4 array);
 void debugVertexBoneData(unsigned int total_vertices, vector<VertexBoneData> Bones);
-
+void debugSkeletonPose(map<string, glm::vec3> skeletonPos);
 class Model
 {
 public:
@@ -47,7 +47,8 @@ public:
 	vector<VertexBoneData> Bones;
 	map<string, unsigned int> Bone_Mapping;
 	map<string, map<string, const aiNodeAnim*>> Animations;
-
+	map<string, glm::vec3> skeleton_pose;
+	vector<glm::vec3> skeleton;
 	vector<BoneInfo> m_BoneInfo;
 	unsigned int NumVertices = 0;
 
@@ -77,8 +78,14 @@ public:
 		float TimeInTicks = TimeInSeconds * TicksPerSecond;
 		float AnimationTime = fmod(TimeInTicks, scene->mAnimations[0]->mChannels[0]->mPositionKeys[numPosKeys - 1].mTime);
 
-		ReadNodeHeirarchy(scene, AnimationTime, scene->mRootNode, Identity);
-
+		ReadNodeHeirarchy(scene, AnimationTime, scene->mRootNode, Identity, glm::vec3(0.0f, 0.0f, 0.0f));
+		
+		skeleton.resize(m_NumBones);
+		for (auto it = skeleton_pose.cbegin(); it != skeleton_pose.cend(); ++it)
+		{
+			skeleton.push_back(it->second);
+		}
+		
 		Transforms.resize(m_NumBones);
 
 		for (unsigned int i = 0; i < m_NumBones; i++) {
@@ -281,7 +288,7 @@ private:
 		}
 	}
 
-	void ReadNodeHeirarchy(const aiScene *scene, float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform) {
+	void ReadNodeHeirarchy(const aiScene *scene, float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform, glm::vec3 startpos) {
 		string NodeName(pNode->mName.data);
 		const aiAnimation* pAnimation = scene->mAnimations[0];
 		glm::mat4 NodeTransformation = glm::mat4(1.0f);
@@ -289,9 +296,13 @@ private:
 		aiMatrix4x4 tp1 = pNode->mTransformation;
 		NodeTransformation = glm::transpose(glm::make_mat4(&tp1.a1));
 
+		glm::vec3 pos;
+		pos.x = startpos.x;
+		pos.y = startpos.y;
+		pos.z = startpos.z;
+
 		const aiNodeAnim* pNodeAnim = nullptr;
 		pNodeAnim = Animations[pAnimation->mName.data][NodeName];
-		//const aiNodeAnim* pNodeAnim = FindNodeAnim(pAnimation, NodeName);
 		if (pNodeAnim) {
 
 			//Interpolate scalling and generate scaling transformation matrix
@@ -319,19 +330,20 @@ private:
 		}
 
 		glm::mat4 GlobalTransformation = ParentTransform * NodeTransformation;
-	
-
 
 		if (Bone_Mapping.find(NodeName) != Bone_Mapping.end()) {
- 			unsigned int NodeIndex = Bone_Mapping[NodeName];
-			m_BoneInfo[NodeIndex].FinalTransformation =  GlobalTransformation * m_BoneInfo[NodeIndex].offset;
-
+			unsigned int NodeIndex = Bone_Mapping[NodeName];
+			m_BoneInfo[NodeIndex].FinalTransformation = GlobalTransformation * m_BoneInfo[NodeIndex].offset;
+			pos.x = GlobalTransformation[3][0];
+			pos.y = GlobalTransformation[3][1];
+			pos.z = GlobalTransformation[3][2];
+			skeleton_pose[NodeName] = pos;
 		}
 
 		for (unsigned int i = 0; i < pNode->mNumChildren; i++) {
-			ReadNodeHeirarchy(scene, AnimationTime, pNode->mChildren[i], GlobalTransformation);
+			ReadNodeHeirarchy(scene, AnimationTime, pNode->mChildren[i], GlobalTransformation, pos);
 		}
-	}
+	}	
 
 	void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
 	{
@@ -500,4 +512,12 @@ void debugVertexBoneData(unsigned int total_vertices, vector<VertexBoneData> Bon
 
 	log.close();
 }
+
+void debugSkeletonPose(map<string, glm::vec3> skeletonPos) {
+	for (auto it = skeletonPos.cbegin(); it != skeletonPos.cend(); ++it)
+	{
+		std::cout << it->first << " " << it->second.x << " " << it->second.y << " " << it->second.z <<"\n";
+	}
+}
+
 	
