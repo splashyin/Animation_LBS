@@ -83,7 +83,7 @@ int main(void)
 	//Model aModel("res/object/body/silly_dance.fbx");
 	//Model aModel("res/object/body/Mannequin_Animation.fbx");
 	//Model aModel("res/object/body/turtle_texture.fbx");
-	//Model aModel("res/object/cylinder/anim_cylinder2.fbx");
+	//Model aModel("res/object/cylinder/anim_cylinder.fbx");
 	Model aModel("res/object/body/groo.fbx");
 	
 	//				lamp position					light color
@@ -154,7 +154,7 @@ int main(void)
 		lamp.Draw(lampShader);
 
 		//activate skeleton shader
-		Skeleton skeleton(aModel.skeleton);
+		Skeleton skeleton(aModel.skeleton_pose);
 
 		skeletonShader.use();
 		skeletonShader.setMat4("projection", projection);
