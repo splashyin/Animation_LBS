@@ -28,5 +28,5 @@ void main() {
 	gl_Position = projection * view * model * pos;
 
 	FragPos = vec3(model* pos);
-	Normal = mat3(transpose(inverse(model))) * aNormal;
+	Normal = mat3(transpose(inverse(BoneTransform))) * aNormal;
 }
