@@ -71,6 +71,7 @@ int main(void)
 	// configure global opengl state
 	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_PROGRAM_POINT_SIZE);
 
 	Shader modelShader("res/shaders/vertex.shader", "res/shaders/fragment.shader");
 	Shader lampShader("res/shaders/lamp.vs", "res/shaders/lamp.fs");
@@ -78,13 +79,14 @@ int main(void)
 
 	//Model aModel("res/object/body/pedobear_animated.fbx");
 	//Model aModel("res/object/body/skinning_test_2.fbx");
-	Model aModel("res/object/body/skinning_test.fbx");
+	//Model aModel("res/object/body/skinning_test.fbx");
 	//Model aModel("res/object/body/skinning_test_3.fbx");
 	//Model aModel("res/object/body/silly_dance.fbx");
 	//Model aModel("res/object/body/Mannequin_Animation.fbx");
 	//Model aModel("res/object/body/turtle_texture.fbx");
-	//Model aModel("res/object/cylinder/anim_cylinder2.fbx");
-	//Model aModel("res/object/body/groo.fbx");
+	//Model aModel("res/object/cylinder/leafbone.fbx");
+	Model aModel("res/object/body/groo.fbx");
+	//Model aModel("res/object/body/sk2_leafbone.fbx");
 	
 	//				lamp position					light color
 	Lamp lamp(glm::vec3(1.2f, 1.0f, 2.0f), glm::vec3(1.0f, 1.0f, 1.0f));
@@ -112,8 +114,8 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//wireframe mode for debugging
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
 		//activate model shader
 		// render 3D model
@@ -141,7 +143,7 @@ int main(void)
 
 		//activate lamp shader
 		//render light cube(lamp)
-		lamp.Position.x = 1.0f + sin(glfwGetTime()) * 2.0f;
+		//lamp.Position.x = 1.0f + sin(glfwGetTime()) * 2.0f;
 		lampShader.use();
 		lampShader.setMat4("projection", projection);
 		lampShader.setMat4("view", view);

@@ -23,9 +23,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-#define INI_NODE_ID 0
 
-using namespace std;
+using std::string;
 
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
 
@@ -80,8 +79,9 @@ public:
 		float TimeInTicks = TimeInSeconds * TicksPerSecond;
 		float AnimationTime = fmod(TimeInTicks, scene->mAnimations[0]->mChannels[0]->mPositionKeys[numPosKeys - 1].mTime);
 
-		ReadNodeHeirarchy(scene, AnimationTime, scene->mRootNode, Identity, glm::vec3(0.0f, 0.0f, 0.0f), INI_NODE_ID);
-		debugSkeletonPose(skeleton_pose);
+		ReadNodeHeirarchy(scene, AnimationTime, scene->mRootNode, Identity, glm::vec3(0.0f, 0.0f, 0.0f));
+		
+		//debugSkeletonPose(skeleton_pose);
 		
 		Transforms.resize(m_NumBones);
 
@@ -106,8 +106,46 @@ private:
 		// retrieve the directory path of the filepath
 		directory = path.substr(0, path.find_last_of('/'));
 
+		loadBones(scene->mRootNode, scene);
+		m_BoneInfo.resize(Bone_Mapping.size());
 		// process ASSIMP's root node recursively
 		processNode(scene->mRootNode, scene);
+	}
+
+	void loadBones(aiNode *node, const aiScene *scene)
+	{
+		for (unsigned int i = 0; i < node->mNumChildren; i++) {
+			string NodeName(node->mChildren[i]->mName.data);
+			if (NodeName.find("mixamorig") != string::npos) {
+				string BoneName = NodeName;
+				unsigned int BoneIndex = 0;
+
+				if (Bone_Mapping.find(BoneName) == Bone_Mapping.end()) {
+					BoneIndex = m_NumBones;
+					m_NumBones++;
+					Bone_Mapping[BoneName] = BoneIndex;
+				}
+			}
+			//only uncomment if we need to load cylinder model
+			/*else {
+				string BoneName(node->mChildren[i]->mName.data);
+				unsigned int BoneIndex = 0;
+
+				if (Bone_Mapping.find(BoneName) == Bone_Mapping.end()) {
+					BoneIndex = m_NumBones;
+					m_NumBones++;
+					Bone_Mapping[BoneName] = BoneIndex;
+				}
+			}
+			*/
+		}
+		
+		for (unsigned int i = 0; i < node->mNumChildren; i++)
+		{
+			loadBones(node->mChildren[i], scene);
+		}
+
+		
 	}
 
 	// processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
@@ -144,21 +182,21 @@ private:
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 		{
 			Vertex vertex;
-			glm::vec3 vector; // we declare a placeholder vector 
+			glm::vec3 vector;
 
-			// positions
+			//retreive positions
 			vector.x = mesh->mVertices[i].x;
 			vector.y = mesh->mVertices[i].y;
 			vector.z = mesh->mVertices[i].z;
 			vertex.Position = vector;
 
-			// normals
+			//retreive normals
 			vector.x = mesh->mNormals[i].x;
 			vector.y = mesh->mNormals[i].y;
 			vector.z = mesh->mNormals[i].z;
 			vertex.Normal = vector;
 			
-			// texture coordinates
+			//retreive texture coordinates
 			if (mesh->mTextureCoords[0])
 			{
 				glm::vec2 vec;
@@ -166,13 +204,13 @@ private:
 				vec.y = mesh->mTextureCoords[0][i].y;
 				vertex.TexCoords = vec;
 			}
-			else 
+			else {
 				vertex.TexCoords = glm::vec2(0.0f, 0.0f);
-			
+			}
 			vertices.push_back(vertex);
 		}
 		
-		//indices
+		//retreive indices
 		for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 		{
 			aiFace face = mesh->mFaces[i];
@@ -184,7 +222,6 @@ private:
 		{
 			aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 			vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-
 		}
 		
 		// process materials
@@ -201,7 +238,7 @@ private:
 		// 4. height maps
 		std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-
+		//retreive bone information
 		loadMeshBones(mesh, Bones);
 		// return a mesh object created from the extracted mesh data
 		return Mesh(vertices, indices, textures, m_BoneInfo, Bones);
@@ -247,19 +284,16 @@ private:
 			unsigned int BoneIndex = 0;
 			string BoneName(mesh->mBones[i]->mName.data);
 
-			if (Bone_Mapping.find(BoneName) == Bone_Mapping.end())
+			if (Bone_Mapping.find(BoneName) != Bone_Mapping.end())
 			{
-				BoneIndex = m_NumBones;
-				m_NumBones++;
-				BoneInfo bi;
-				m_BoneInfo.push_back(bi);
-			}
-			else {
 				BoneIndex = Bone_Mapping[BoneName];
+				//BoneInfo bi;
+				//m_BoneInfo.push_back(bi);
+
+				aiMatrix4x4 tp1 = mesh->mBones[i]->mOffsetMatrix;
+				m_BoneInfo[BoneIndex].offset = glm::transpose(glm::make_mat4(&tp1.a1));
 			}
-			Bone_Mapping[BoneName] = BoneIndex;
-			aiMatrix4x4 tp1 = mesh->mBones[i]->mOffsetMatrix;
-			m_BoneInfo[BoneIndex].offset = glm::transpose(glm::make_mat4(&tp1.a1));
+			
 
 			for (unsigned int n = 0; n < mesh->mBones[i]->mNumWeights; n++) {
 				unsigned int vid = mesh->mBones[i]->mWeights[n].mVertexId + NumVertices;//absolute index
@@ -271,6 +305,8 @@ private:
 		NumVertices += mesh->mNumVertices;
 	}
 	
+	//get animation from the bone
+	//populate the animation map : animation_map[animation_name][bone_name] -> animation
 	void loadAnimations(const aiScene *scene, string BoneName, map<string, map<string, const aiNodeAnim*>>& animations)
 	{
 		for (unsigned int i = 0; i < scene->mNumAnimations; i++) {
@@ -285,7 +321,9 @@ private:
 		}
 	}
 
-	void ReadNodeHeirarchy(const aiScene *scene, float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform, glm::vec3 startpos, unsigned int prevID) {
+	void ReadNodeHeirarchy(	const aiScene *scene, float AnimationTime, const aiNode* pNode,
+		const glm::mat4& ParentTransform, glm::vec3 startpos)
+	{
 		string NodeName(pNode->mName.data);
 		const aiAnimation* pAnimation = scene->mAnimations[0];
 		glm::mat4 NodeTransformation = glm::mat4(1.0f);
@@ -296,7 +334,6 @@ private:
 		const aiNodeAnim* pNodeAnim = nullptr;
 		pNodeAnim = Animations[pAnimation->mName.data][NodeName];
 		if (pNodeAnim) {
-
 			//Interpolate scalling and generate scaling transformation matrix
 			aiVector3D Scaling;
 			CalcInterpolatedScaling(Scaling, AnimationTime, pNodeAnim);
@@ -322,19 +359,16 @@ private:
 		}
 
 		glm::mat4 GlobalTransformation = ParentTransform * NodeTransformation;
-		startpos.x = GlobalTransformation[3][0];
-		startpos.y = GlobalTransformation[3][1];
-		startpos.z = GlobalTransformation[3][2];
+
+
+		unsigned int ID = 0;
 		
-		unsigned int ID = -1;
-		std::string cName = NodeName.substr(NodeName.find_last_of(" ") + 1);
-		if (Bone_Mapping.find(NodeName) != Bone_Mapping.end() || cName == "end") {
-			if (cName == "end") {
-				ID = prevID;
-			}
-			else {
-				ID = Bone_Mapping[NodeName];
-			}
+
+		if (Bone_Mapping.find(NodeName) != Bone_Mapping.end()) {
+			startpos.x = GlobalTransformation[3][0];
+			startpos.y = GlobalTransformation[3][1];
+			startpos.z = GlobalTransformation[3][2];
+			ID = Bone_Mapping[NodeName];
 			skeleton_pose[ID] = startpos;
 		}
 
@@ -343,11 +377,11 @@ private:
 			unsigned int NodeIndex = Bone_Mapping[NodeName];
 			m_BoneInfo[NodeIndex].FinalTransformation = GlobalTransformation * m_BoneInfo[NodeIndex].offset;	
 		}
-
 		for (unsigned int i = 0; i < pNode->mNumChildren; i++) {
-			ReadNodeHeirarchy(scene, AnimationTime, pNode->mChildren[i], GlobalTransformation, startpos, ID);
+			ReadNodeHeirarchy(scene, AnimationTime, pNode->mChildren[i], GlobalTransformation, startpos);
 		}
 	}	
+
 
 	void CalcInterpolatedScaling(aiVector3D& Out, float AnimationTime, const aiNodeAnim* pNodeAnim)
 	{
@@ -445,6 +479,7 @@ private:
 	}
 };
 
+//Helpers
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma)
 {
 	string filename = string(path);
@@ -485,6 +520,7 @@ unsigned int TextureFromFile(const char *path, const string &directory, bool gam
 	return textureID;
 }
 
+//Debuggers
 void debuggingMatrix(glm::mat4 array)
 {
 	for (int r = 0; r < 4; ++r)
