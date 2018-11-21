@@ -116,7 +116,7 @@ private:
 	{
 		for (unsigned int i = 0; i < node->mNumChildren; i++) {
 			string NodeName(node->mChildren[i]->mName.data);
-			if (NodeName.find("mixamorig") != string::npos) {
+			if (NodeName.find(":") != string::npos) {
 				string BoneName = NodeName;
 				unsigned int BoneIndex = 0;
 
@@ -131,13 +131,13 @@ private:
 				string BoneName(node->mChildren[i]->mName.data);
 				unsigned int BoneIndex = 0;
 
-				if (Bone_Mapping.find(BoneName) == Bone_Mapping.end()) {
+				if (Bone_Mapping.find(BoneName) == Bone_Mapping.end() && BoneName != "Amature") {
 					BoneIndex = m_NumBones;
 					m_NumBones++;
 					Bone_Mapping[BoneName] = BoneIndex;
 				}
-			}
-			*/
+			}*/
+			
 		}
 		
 		for (unsigned int i = 0; i < node->mNumChildren; i++)
