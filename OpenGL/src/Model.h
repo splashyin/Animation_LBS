@@ -2,10 +2,10 @@
 
 #include <GL/glew.h>
 
-#include <glm\glm.hpp>
-#include <glm\gtc\matrix_transform.hpp>
-#include <glm\gtc\type_ptr.hpp>
-#include <glm\gtx\quaternion.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include "Shader.h"
 #include "Mesh.h"
 
@@ -16,9 +16,9 @@
 #include <map>
 #include <vector>
 
-#include "assimp\scene.h"
-#include "assimp\Importer.hpp"
-#include "assimp\postprocess.h"
+#include "assimp/scene.h"
+#include "assimp/Importer.hpp"
+#include "assimp/postprocess.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

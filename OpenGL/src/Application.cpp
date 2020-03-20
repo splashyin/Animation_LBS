@@ -6,9 +6,9 @@
 #include "Model.h"
 #include "Lamp.h"
 #include "Skeleton.h"
-#include <glm\glm.hpp>
-#include <glm\gtc\matrix_transform.hpp>
-#include <glm\gtc\type_ptr.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
